@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import mysql.connector
 from config import *
+import re
 
 def get_col_domains_from_user(user_tg_id):
     try:
@@ -19,6 +20,29 @@ def get_col_domains_from_user(user_tg_id):
             col_domains_from_user = i[0]
         cursor.close()
         return col_domains_from_user
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
+def get_telephone(user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "SELECT telephone FROM users WHERE user_tg_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, (user_tg_id, ))
+        records = cursor.fetchall()
+        for i in records:
+            telephone_number = i[0]
+        cursor.close()
+        return telephone_number
     except mysql.connector.Error as error:
         print("Failed to insert record into Laptop table {}".format(error))
     finally:
@@ -101,4 +125,28 @@ def get_date_and_domain_expired(user_tg_id):
     finally:
         if (connection.is_connected()):
             connection.close()
+
+
+def correctly_telephone(telephone_from_user):
+    check_seven_in_number = seven_correctly_telephone(telephone_from_user)
+    if len(telephone_from_user) == 11:
+        if check_seven_in_number == 'Success':
+            result = 'Success'
+            return result
+    else:
+        print("Вы прислали некорректный номер телефона.")
+        print("Общее количество цифр должно быть равно 11")
+        result = 'Error'
+        return result
+
+
+def seven_correctly_telephone(telephone_from_user):
+    result = re.findall(r'^7', telephone_from_user)
+    if '7' in result:
+        result = 'Success'
+        return result
+    else:
+        result = 'Error'
+        return result
+
 #

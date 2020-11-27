@@ -9,7 +9,10 @@ from actions_with_domain import domain_url_add_to_bd, \
     check_domain_id_and_tg_id, \
     delete_domain_url, new_robots_txt, request_api_xml, sql_insert_expired, select_domain
 
-from profile_sql import get_col_domains_from_user, get_uptime_for_user, get_date_and_domain_expired
+from profile_sql import get_col_domains_from_user, \
+    get_uptime_for_user, \
+    get_date_and_domain_expired, \
+    correctly_telephone
 
 list_domains = ""
 
@@ -124,7 +127,16 @@ def handle_text(message):
                                           f"<b>2️⃣ Описание ошибки или жалоба:</b>",
                          reply_markup=back_button, parse_mode="HTML")
         # bot.register_next_step_handler(message, add_site_bd)
-
+    elif message.text == 'Добавить номер телефона (только РФ)':
+        print(message.chat.id)
+        print(message.text)
+        back_button = types.ReplyKeyboardMarkup(True, True)
+        back_button.row('Назад')
+        bot.send_message(message.chat.id, f"Пришлите мне номер телефона в формате 7XXXXXXXXXX\n"
+                                          f"Пример номера: <b>79647489485</b>\n"
+                                          f"На указанный номер будут поступать SMS-уведомления о доступности сайтов.",
+                         reply_markup=back_button, parse_mode="HTML")
+        bot.register_next_step_handler(message, add_telephone)
     elif message.text == 'Назад':
         print(message.text)
         get_text_messages(message)
@@ -222,6 +234,19 @@ def rewrite_robots_hash(message):
     except ValueError:
         bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
 
+def add_telephone(message):
+    try:
+        if message.text == 'Назад':
+            get_text_messages(message)
+        else:
+            user_id = message.from_user.id
+            print(f"Пользователь {user_id} пытается добавить номер телефона")
+            status_number = correctly_telephone(message.text)
+            print(status_number)
+
+
+    except ValueError:
+        bot.send_message(message.from_user.id, f"Указан некорректный id. Напишите /start и повторите команду")
 
 # Запускаем постоянный опрос бота в Телеграме
 bot.polling(none_stop=True, interval=0)
