@@ -45,6 +45,30 @@ def get_telephone(user_tg_id):
         return telephone_number
     except mysql.connector.Error as error:
         print("Failed to insert record into Laptop table {}".format(error))
+    except UnboundLocalError:
+        telephone_number = ''
+        return telephone_number
+    finally:
+        if (connection.is_connected()):
+            connection.close()
+
+
+def insert_telephone(telephone_number, user_tg_id):
+    try:
+        connection = mysql.connector.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database_home
+        )
+        sql = "INSERT INTO users (telephone, user_tg_id) VALUES (%s, %s)"
+        cursor = connection.cursor()
+        cursor.execute(sql, (telephone_number, user_tg_id))
+        connection.commit()
+        cursor.close()
+    except mysql.connector.Error as error:
+        print("Failed to insert record into Laptop table {}".format(error))
+
     finally:
         if (connection.is_connected()):
             connection.close()

@@ -12,7 +12,7 @@ from actions_with_domain import domain_url_add_to_bd, \
 from profile_sql import get_col_domains_from_user, \
     get_uptime_for_user, \
     get_date_and_domain_expired, \
-    correctly_telephone
+    correctly_telephone, insert_telephone, get_telephone
 
 list_domains = ""
 
@@ -44,8 +44,10 @@ def handle_text(message):
                          f"✔️код ответа сервера;\n"
                          f"✔️изменения в файле robots.txt;\n"
                          f"✔️дата освобождения;\n"
-                         f"⚠️Если кто-то изменит robots.txt или домен будет недоступен, вы получите уведомление.",
-                         reply_markup=back_button)
+                         f"⚠️Если кто-то изменит robots.txt или домен будет недоступен, вы получите уведомление.\n"
+                         f"Формат добавления домена: <b>[протокол]</b>[адрес сайта]\n"
+                         f"Пример: [протокол] = https:// | http:// | https://www.",
+                         reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_site_bd)
 
     elif message.text == '❌ Удалить сайт':
@@ -83,7 +85,9 @@ def handle_text(message):
 
     if message.text == '👀 Мой профиль':
         back_button = types.ReplyKeyboardMarkup(True, True)
-        back_button.row('Добавить номер телефона (только РФ)')
+        actual_telephone_user = get_telephone(message.chat.id)
+        if len(actual_telephone_user) == 0:
+            back_button.row('Добавить номер телефона (только РФ)')
         back_button.row('Обратная связь')
         back_button.row('Назад')
         print(message.chat.id)
@@ -103,6 +107,8 @@ def handle_text(message):
             domain_name = "Неизвестно"
             date_expired_domain = "Неизвестно"
             difference_days = "Неизвестно"
+        if len(actual_telephone_user) == 0:
+            actual_telephone_user = 'Неизвестен'
         bot.send_message(message.chat.id,
                          f"👮 Количество отслеживаемых доменов, шт.: {col}\n"
                          f"🕒 Средний UPTIME по всем доменам: {uptime}\n"
@@ -110,10 +116,9 @@ def handle_text(message):
                          f"📅 Дата освобождения: {date_expired_domain}\n"
                          f"📅 Дней до освобождения: {difference_days}\n"
                          f"⌛ Интервал проверки доменов, минут: 10\n"
-                         f"☎️Ваш номер телефона для SMS-уведомлений: \n",
+                         f"☎️Ваш номер телефона для SMS-уведомлений: {actual_telephone_user}\n",
                          reply_markup=back_button)
         # bot.register_next_step_handler(message, add_site_bd)
-
     elif message.text == 'Обратная связь':
         print(message.chat.id)
         print(message.text)
@@ -132,9 +137,11 @@ def handle_text(message):
         print(message.text)
         back_button = types.ReplyKeyboardMarkup(True, True)
         back_button.row('Назад')
-        bot.send_message(message.chat.id, f"Пришлите мне номер телефона в формате 7XXXXXXXXXX\n"
-                                          f"Пример номера: <b>79647489485</b>\n"
-                                          f"На указанный номер будут поступать SMS-уведомления о доступности сайтов.",
+        bot.send_message(message.chat.id, f"Пришлите мне номер телефона в формате <b>7XXXXXXXXXX</b>\n"
+                                          f"📱 Пример номера: <b>79647489485</b>\n"
+                                          f"Требуемая длина номера: 11 символов\n"
+                                          f"Номер должен начинаться с <b>7</b>\n"
+                                          f"✉️ На указанный номер будут поступать SMS-уведомления о доступности сайтов.",
                          reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_telephone)
     elif message.text == 'Назад':
@@ -243,6 +250,13 @@ def add_telephone(message):
             print(f"Пользователь {user_id} пытается добавить номер телефона")
             status_number = correctly_telephone(message.text)
             print(status_number)
+            if status_number == 'Error':
+                bot.send_message(message.from_user.id, f"Указан некорректный номер телефона.\n"
+                                                       f"Напишите /start и повторите команду")
+            elif status_number == 'Success':
+                insert_telephone(message.text, user_id)
+                bot.send_message(message.from_user.id, f"Номер телефона успешно добавлен в ваш профиль.\n")
+
 
 
     except ValueError:
