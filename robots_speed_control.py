@@ -163,7 +163,7 @@ def check_final_status_code(domain_url, domain_id, telegram_user_id):
             insert_status_log_verification(domain_id, "Error", "Response Code")
             print("Домен: " + str(domain_url) + " НЕДОСТУПЕН. Надо отправить уведомление.")
             bot.send_message(chat_id=telegram_user_id, text=f"❗Внимание❗\n"
-                                                            f"Домен: {domain_url} недоступен после {num_max_check} "
+                                                            f"Домен: {domain_url} недоступен после {num_max_check}"
                                                             f"повторных проверок. "
                                                             f"Общее время ожидания доступности домена составляет: "
                                                             f"{timeout_waiting_status_code} секунд.")

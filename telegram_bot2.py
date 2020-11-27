@@ -45,8 +45,10 @@ def handle_text(message):
                          f"✔️изменения в файле robots.txt;\n"
                          f"✔️дата освобождения;\n"
                          f"⚠️Если кто-то изменит robots.txt или домен будет недоступен, вы получите уведомление.\n"
-                         f"Формат добавления домена: <b>[протокол]</b>[адрес сайта]\n"
-                         f"Пример: [протокол] = https:// | http:// | https://www.",
+                         f"<b>Форматы добавления домена:</b>\n"
+                         f"https://site.ru\n"
+                         f"http://site.ru\n"
+                         f"https://www.site.ru",
                          reply_markup=back_button, parse_mode="HTML")
         bot.register_next_step_handler(message, add_site_bd)
 
